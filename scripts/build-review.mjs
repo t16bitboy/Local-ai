@@ -6,6 +6,7 @@ import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 const root = resolve(import.meta.dirname, '..');
 const result = await build({
   configFile: false,
+  define: { "process.env.NODE_ENV": JSON.stringify("production") },
   root,
   plugins: [react(), tailwind()],
   resolve: { alias: [
