@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+
+  --color-bg: #12110f;
+  --color-surface: #1c1a17;
+  --color-surface-2: #26231f;
+  --color-fg: #f4efe6;
+  --color-muted: #b3a494;
+  --color-line: #3a342e;
+  --color-copper: #e08a45;
+  --color-ink: #2a160c;
+  --color-paper: #f3ecdf;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.125rem;
+  --radius-xl: 1.5rem;
+
+  --shadow-line: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-line-strong: 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-fg);
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 560;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-copper);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-copper);
+    color: var(--color-ink);
+  }
+}
+
+@utility shadow-line {
+  box-shadow: var(--shadow-line);
+}
+
+@utility shadow-line-strong {
+  box-shadow: var(--shadow-line-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
