@@ -140,8 +140,8 @@ export const useKeel = create<KeelState>()(
               ? {
                   ...t,
                   ...patch,
-                  title: patch.title !== undefined ? patch.title.slice(0, 140) : t.title,
-                  titleMark: patch.title !== undefined && patch.title !== t.title ? null : t.titleMark,
+                  title: patch.title !== undefined ? patch.title.trim().slice(0, 140) || t.title : t.title,
+                  titleMark: patch.title !== undefined && patch.title.trim() && patch.title.trim().slice(0, 140) !== t.title ? null : t.titleMark,
                 }
               : t,
           ),
@@ -200,8 +200,9 @@ export const useKeel = create<KeelState>()(
                   assist: via,
                   steps: [
                     ...t.steps,
-                    ...Array.from(new Set(titles.map((title) => title.trim().slice(0, 160)).filter(Boolean)))
-                      .filter((title) => !t.steps.some((step) => step.title.toLowerCase() === title.toLowerCase()))
+                    ...titles.map((title) => title.trim().slice(0, 160)).filter((title, index, incoming) =>
+                        title && incoming.findIndex((other) => other.toLowerCase() === title.toLowerCase()) === index &&
+                        !t.steps.some((step) => step.title.trim().toLowerCase() === title.toLowerCase()))
                       .slice(0, 6).map((title) => ({
                       id: uid(),
                       title: title.slice(0, 160),
@@ -315,6 +316,18 @@ export const useKeel = create<KeelState>()(
     {
       name: "keel-v2",
       skipHydration: true,
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<KeelState>;
+        return {
+          ...current,
+          ...saved,
+          // Repair nameless tasks saved by the previous title editor.
+          tasks: (saved.tasks ?? current.tasks).map((task) => ({
+            ...task,
+            title: task.title.trim().slice(0, 140) || "Untitled task",
+          })),
+        };
+      },
       partialize: (s) => ({
         tasks: s.tasks,
         plan: s.plan,

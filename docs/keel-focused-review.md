@@ -1,5 +1,7 @@
 # Focused Keel review
 
+Follow-up corrections and current release decision: [independent audit](keel-independent-audit.md). Findings below describe the historical reviewed revision.
+
 Reviewed 2026-10-23 against PR #1 head `8c073602359eddaa2637b39604af59b1c0e0bac1` and the supplied ZIP. Decision: keep the PR in draft. Do not merge this revision yet. No application code was changed during this review.
 
 The 208-file import establishes source custody. It is not evidence of customer demand or completed product functionality. The substantive task-desk changes are in store.ts, data.ts, desk.tsx and brief.tsx, with eight regression tests.

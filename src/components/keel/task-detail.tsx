@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { dueLabel, markToken, type Task } from "@/lib/keel/data";
 import { useKeel } from "@/lib/keel/store";
@@ -11,6 +11,16 @@ export function TaskDetail({ task, onClose }: { task: Task; onClose?: () => void
   const removeTask = useKeel((s) => s.removeTask);
   const setView = useKeel((s) => s.setView);
   const [armDelete, setArmDelete] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(task.title);
+  useEffect(() => {
+    setTitleDraft(task.title);
+    setArmDelete(false);
+  }, [task.id, task.title]);
+  const commitTitle = () => {
+    const title = titleDraft.trim().slice(0, 140) || task.title;
+    patchTask(task.id, { title });
+    setTitleDraft(title);
+  };
   const due = dueLabel(task.due);
   const doneSteps = task.steps.filter((s) => s.done).length;
 
@@ -43,8 +53,14 @@ export function TaskDetail({ task, onClose }: { task: Task; onClose?: () => void
 
       <input
         aria-label="Task title"
-        value={task.title}
-        onChange={(e) => patchTask(task.id, { title: e.target.value })}
+        value={titleDraft}
+        maxLength={140}
+        onChange={(e) => setTitleDraft(e.target.value)}
+        onBlur={commitTitle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+          if (e.key === "Escape") setTitleDraft(task.title);
+        }}
         data-ai-synthetic={task.titleMark ? "true" : undefined}
         data-ai-schema={task.titleMark?.schema}
         data-ai-model={task.titleMark?.model}

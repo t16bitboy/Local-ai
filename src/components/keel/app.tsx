@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { BarChart3, BookOpen, ListTodo, MessagesSquare, Settings2 } from "lucide-react";
 import { VIEWS, seedRisks, seedRules, type ViewId } from "@/lib/keel/data";
+import { startKeelClock } from "@/lib/keel/lifecycle";
 import { planLabel, useKeel } from "@/lib/keel/store";
 import { Desk } from "@/components/keel/desk";
 import { Brief } from "@/components/keel/brief";
@@ -23,11 +24,10 @@ export function KeelApp() {
   const onboarded = useKeel((s) => s.workspace.onboarded);
 
   useEffect(() => {
+    let cancelled = false;
+    let stopClock: (() => void) | undefined;
     const apply = () => {
-      const state = useKeel.getState();
-      if (state.plan === "trial" && state.trialEnds && state.trialEnds < Date.now()) {
-        useKeel.setState({ plan: "free", trialEnds: null });
-      }
+      if (cancelled) return;
       const current = useKeel.getState();
       const freshLaw = seedRisks().find((risk) => risk.id === "law");
       const law = current.risks.find((risk) => risk.id === "law");
@@ -40,11 +40,12 @@ export function KeelApp() {
       if (risks !== current.risks || rules.length !== current.rules.length) {
         useKeel.setState({ risks, rules });
       }
-      useKeel.getState().noteVisit();
+      stopClock = startKeelClock();
     };
     const pending = useKeel.persist.rehydrate();
     if (pending instanceof Promise) void pending.then(apply);
     else apply();
+    return () => { cancelled = true; stopClock?.(); };
   }, []);
 
   if (!onboarded) return <Onboard />;
