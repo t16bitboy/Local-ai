@@ -1,4 +1,5 @@
 import https from "node:https";
+import { allowsUnmeteredAssistant } from "@/lib/keel/assistant-policy";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
@@ -41,7 +42,7 @@ export type AssistResult = AssistOk | { ok: false; error: string };
 const MODEL = "grok-4.5";
 
 export const assistantStatus = createServerFn({ method: "GET" }).handler(async () => {
-  return { configured: Boolean(process.env.XAI_API_KEY) };
+  return { configured: Boolean(process.env.XAI_API_KEY) && allowsUnmeteredAssistant(process.env) };
 });
 
 export const assistTask = createServerFn({ method: "POST" })
@@ -51,6 +52,9 @@ export const assistTask = createServerFn({ method: "POST" })
     return parsed.data;
   })
   .handler(async ({ data }): Promise<AssistResult> => {
+    if (!allowsUnmeteredAssistant(process.env)) {
+      return { ok: false, error: "Live AI is disabled until server spending controls are available. Use an offline draft." };
+    }
     const apiKey = process.env.XAI_API_KEY;
     if (!apiKey) return { ok: false, error: "The assistant isn’t configured in this environment." };
 
