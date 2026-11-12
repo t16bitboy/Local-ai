@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#070a11"/>
+<title>STACKR v4 — Travis Escalade</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+<style>
+:root{
+  --bg:#070a11;
+  --card:#0f1520;
+  --card-2:#111c2a;
+  --border:#1e2633;
+  --border-2:#233044;
+  --input:#0b111b;
+  --text:#e8eef8;
+  --muted:#7b8799;
+  --muted-2:#5c6b84;
+  --green:#19c37d;
+  --green-glow:rgba(25,195,125,.35);
+  --red:#ff4d4f;
+  --red-soft:rgba(255,77,79,.14);
+  --blue:#2f5aff;
+  --amber:#ffcc4d;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter, ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; -webkit-font-smoothing:antialiased}
+body{
+  background:
+    radial-gradient(900px 600px at 50% -15%, #1c2f55 0%, #121b2f 18%, #0a111d 42%, #070a11 72%),
+    var(--bg);
+}
+.app{max-width:460px;margin:0 auto;padding:18px 14px 36px}
+header{padding:6px 6px 14px}
+.logo-row{display:flex;align-items:baseline;gap:10px}
+.logo{font-weight:900;font-size:30px;letter-spacing:-0.04em;line-height:1;color:#fff}
+.logo span{color:var(--green)}
+.ver-badge{font-size:10px;font-weight:800;letter-spacing:.12em;color:#08120e;background:var(--green);padding:4px 7px;border-radius:999px;line-height:1}
+.subtitle{margin-top:6px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tabs{
+  display:flex;gap:8px;background:var(--card);border:1px solid var(--border);
+  padding:6px;border-radius:999px;margin:10px 0 18px;
+  position:sticky;top:10px;z-index:20;backdrop-filter:blur(14px)
+}
+.tab{
+  flex:1;height:40px;border:0;border-radius:999px;background:transparent;
+  color:var(--muted);font-weight:800;font-size:12.5px;letter-spacing:.08em;
+  cursor:pointer;transition:all .18s ease;
+}
+.tab.active{background:var(--green);color:#07120e;box-shadow:0 6px 22px var(--green-glow)}
+.tab:not(.active):active,.card button:active,.small-btn:active,.clear-btn:active,.analyze-btn:active,.preset-btn:active,.upload-btn:active{
+  transform:scale(.97)
+}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px}
+.upload-btn{
+  width:100%;border:1px dashed var(--border-2);background:linear-gradient(180deg,#132032 0%, #111c2a 100%);
+  color:#bcd0ea;border-radius:14px;padding:18px 14px;font-weight:800;font-size:14px;letter-spacing:.01em;
+  display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform .15s, border-color .18s
+}
+.upload-btn:hover{border-color:#2a3a56}
+.preview-row{display:flex;gap:12px;align-items:center;margin-top:12px;min-height:0}
+.preview-img{width:72px;height:72px;object-fit:cover;border-radius:12px;border:1px solid var(--border);display:none;flex-shrink:0;background:#0b111b}
+.status{font-size:12px;line-height:1.4;color:var(--muted)}
+.status b{color:#c7d7ee;font-weight:700}
+.controls{display:flex;gap:10px;margin-top:14px;align-items:stretch}
+.deadhead-card{
+  flex:1;display:flex;flex-direction:column;gap:10px;padding:13px 13px 12px;
+  background:var(--card);border:1px solid var(--border);border-radius:16px;position:relative
+}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.switch-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.switch-label{font-size:13px;font-weight:800;color:#e6eef9;line-height:1.1}
+.switch-info{font-size:11px;color:var(--muted);line-height:1.35}
+.switch{position:relative;width:46px;height:28px;flex-shrink:0}
+.switch input{opacity:0;position:absolute;width:0;height:0}
+.slider{position:absolute;inset:0;background:#1c2738;border-radius:999px;transition:.22s;cursor:pointer;border:1px solid #243147}
+.slider:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.22s;box-shadow:0 2px 6px rgba(0,0,0,.45)}
+input:checked + .slider{background:var(--green);border-color:var(--green)}
+input:checked + .slider:before{transform:translateX(18px)}
+.badge-row{min-height:20px}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:900;letter-spacing:.08em;background:var(--amber);color:#211a03;padding:5px 9px;border-radius:999px}
+.clear-btn{
+  height:48px;align-self:flex-start;padding:0 16px;border-radius:14px;border:1px solid var(--border);
+  background:var(--input);color:#9fb0c8;font-weight:800;font-size:12.5px;letter-spacing:.04em;cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .15s
+}
+.inputs-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+.input-group{display:flex;flex-direction:column;gap:6px}
+.input-group label{font-size:10px;letter-spacing:.09em;font-weight:800;color:var(--muted);text-transform:uppercase}
+.input-wrap{position:relative}
+.input-wrap input{
+  width:100%;height:54px;background:var(--input);border:1px solid var(--border);border-radius:14px;
+  color:#fff;font-size:18px;font-weight:800;padding:0 14px;outline:none;transition:border-color .18s, box-shadow .18s
+}
+.input-wrap input::placeholder{color:#3a475d;font-weight:700}
+.input-wrap input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,90,255,.18)}
+.analyze-btn{
+  width:100%;height:58px;margin-top:14px;background:var(--green);border:0;border-radius:16px;
+  color:#05110c;font-weight:900;font-size:16px;letter-spacing:.10em;cursor:pointer;
+  box-shadow:0 10px 28px var(--green-glow);transition:transform .15s, filter .15s
+}
+.analyze-btn:hover{filter:brightness(1.05)}
+.presets{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.preset-btn{
+  background:var(--input);border:1px solid var(--border);color:#8ea0bb;border-radius:999px;
+  padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:transform .15s, border-color .15s
+}
+.preset-btn:hover{border-color:#2a3a56;color:#c6d6ee}
+.results{margin-top:14px;background:linear-gradient(180deg,#13213a 0%, #0f1520 100%);display:none}
+.results.show{display:block}
+.verdict-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.verdict{font-size:32px;font-weight:900;letter-spacing:-.03em;line-height:1}
+.verdict.STACK{color:var(--green)}
+.verdict.SKIP{color:var(--red)}
+.verdict-sub{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.stat{background:var(--input);border:1px solid var(--border);border-radius:12px;padding:12px}
+.stat-label{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.stat-value{font-size:22px;font-weight:900;color:#fff;margin-top:4px;letter-spacing:-.02em}
+.stat-value.small{font-size:14px;font-weight:800;color:#bcd0ea}
+.progress-track{height:8px;background:#1a2333;border-radius:999px;margin-top:14px;overflow:hidden;position:relative}
+.progress-fill{height:100%;border-radius:999px;transition:width .7s cubic-bezier(.2,.8,.2,1), background .3s}
+.progress-fill.STACK{background:var(--green)}
+.progress-fill.SKIP{background:var(--red)}
+.details{margin-top:12px;font-size:12px;color:#8ea0bb;line-height:1.5;background:var(--input);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.footer{margin-top:18px;text-align:center;font-size:11px;color:var(--muted-2);letter-spacing:.04em;line-height:1.5}
+.dot{display:inline-block;width:4px;height:4px;background:var(--muted-2);border-radius:50%;margin:0 6px;vertical-align:middle}
+
+#activeView{display:none}
+.totals-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.total-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:11px 12px}
+.total-label{font-size:9px;color:var(--muted);font-weight:800;letter-spacing:.10em;text-transform:uppercase}
+.total-value{font-size:18px;font-weight:900;color:#fff;margin-top:4px;letter-spacing:-.02em}
+.total-hint{font-size:10px;color:var(--muted-2);margin-top:2px}
+.actions{display:flex;gap:8px;margin-bottom:14px}
+.small-btn{
+  flex:1;height:40px;border-radius:12px;border:1px solid var(--border);background:var(--input);
+  color:#9fb0c8;font-weight:800;font-size:12px;letter-spacing:.04em;cursor:pointer;transition:transform .15s
+}
+.history-list{display:flex;flex-direction:column;gap:10px}
+.history-card{display:flex;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .14s, border-color .18s}
+.history-card:hover{border-color:#2a3a56}
+.bar{width:4px;flex-shrink:0}
+.bar.STACK{background:var(--green)}
+.bar.SKIP{background:var(--red)}
+.h-content{flex:1;padding:11px 12px 11px 12px;min-width:0}
+.h-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.h-main{font-size:13.5px;font-weight:800;color:#e6eef9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-verdict{font-size:10px;font-weight:900;letter-spacing:.07em;padding:5px 8px;border-radius:999px;flex-shrink:0}
+.h-verdict.STACK{background:rgba(25,195,125,.14);color:var(--green);border:1px solid rgba(25,195,125,.22)}
+.h-verdict.SKIP{background:var(--red-soft);color:#ff7a7c;border:1px solid rgba(255,77,79,.22)}
+.h-sub{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-size:11.5px;color:var(--muted);align-items:center}
+.pill{inline-size:max-content;display:inline-flex;align-items:center;gap:4px;background:#0b111b;border:1px solid var(--border);border-radius:999px;padding:3px 8px;font-size:11px;font-weight:700}
+.deadhead-icon{font-size:12px}
+.h-date{font-size:10.5px;color:var(--muted-2);margin-top:6px;letter-spacing:.02em}
+.empty{text-align:center;padding:38px 18px;color:var(--muted);font-size:13px;line-height:1.6;border:1px dashed var(--border);border-radius:16px;background:rgba(15,21,32,.6)}
+@media (max-width:380px){
+  .inputs-grid{grid-template-columns:1fr;gap:8px}
+  .controls{flex-direction:column}
+  .clear-btn{width:100%;justify-content:center;height:44px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo-row">
+      <div class="logo">STACKR<span>.</span></div>
+      <div class="ver-badge">V4</div>
+    </div>
+    <div class="subtitle">Escalade Mode – Travis • Columbus, OH</div>
+  </header>
+
+  <nav class="tabs">
+    <button id="tabHome" class="tab active">HOME</button>
+    <button id="tabActive" class="tab">ACTIVE • 0</button>
+  </nav>
+
+  <main>
+    <!-- HOME VIEW -->
+    <section id="homeView">
+      <!-- upload -->
+      <div class="card">
+        <button class="upload-btn" id="uploadBtn">📸 Tap Screenshot to Auto-Read</button>
+        <input id="fileInput" type="file" accept="image/*" hidden>
+        <div class="preview-row">
+          <img id="previewImg" class="preview-img" alt=""/>
+          <div id="ocrStatus" class="status">No screenshot yet. We’ll parse <b>$ • mi • min</b> automatically.</div>
+        </div>
+      </div>
+
+      <!-- deadhead + clear -->
+      <div class="controls">
+        <div class="deadhead-card">
+          <div class="switch-row">
+            <div class="switch-meta">
+              <div class="switch-label">Include return trip (deadhead)</div>
+              <div class="switch-info">Doubles miles + return time. Return est at 35mph.</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="deadheadToggle"/>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="badge-row">
+            <span id="deadheadBadge" class="badge" style="display:none">🔁 DEADHEAD ON</span>
+          </div>
+        </div>
+        <button id="clearBtn" class="clear-btn">🗑️ Clear</button>
+      </div>
+
+      <!-- inputs -->
+      <div class="inputs-grid">
+        <div class="input-group">
+          <label>Pay $</label>
+          <div class="input-wrap"><input id="payInput" type="number" inputmode="decimal" step="0.01" placeholder="22.05"/></div>
+        </div>
+        <div class="input-group">
+          <label>Miles</label>
+          <div class="input-wrap"><input id="milesInput" type="number" inputmode="decimal" step="0.1" placeholder="7.8"/></div>
+        </div>
+        <div class="input-group">
+          <label>Minutes</label>
+          <div class="input-wrap"><input id="minsInput" type="number" inputmode="numeric" step="1" placeholder="21"/></div>
+        </div>
+      </div>
+
+      <button id="analyzeBtn" class="analyze-btn">ANALYZE</button>
+
+      <div class="presets">
+        <button class="preset-btn" data-pay="22.05" data-miles="7.8" data-mins="21">$22.05 • 7.8mi • 21m</button>
+        <button class="preset-btn" data-pay="31" data-miles="12" data-mins="35">$31 • 12mi • 35m</button>
+        <button class="preset-btn" data-pay="14" data-miles="9.2" data-mins="18">$14 • 9.2mi • 18m</button>
+      </div>
+
+      <!-- results -->
+      <div id="resultsCard" class="card results">
+        <div class="verdict-row">
+          <div>
+            <div id="verdictText" class="verdict STACK">STACK</div>
+            <div id="verdictSub" class="verdict-sub">Meets $1.75/mi & $35/hr floor</div>
+          </div>
+          <div id="verdictIcon" style="font-size:28px">✅</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-label" id="perMileLabel">$/mi • effective</div>
+            <div id="perMileVal" class="stat-value">$2.83</div>
+            <div id="perMileFloor" class="stat-value small" style="margin-top:2px;color:var(--muted)">Floor $1.75</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label" id="perHourLabel">$/hr • effective</div>
+            <div id="perHourVal" class="stat-value">$42.0</div>
+            <div id="perHourFloor" class="stat-value small" style="margin-top:2px;color:var(--muted)">Floor $35</div>
+          </div>
+        </div>
+        <div class="progress-track"><div id="progressFill" class="progress-fill STACK" style="width:92%"></div></div>
+        <div id="detailsLine" class="details">7.8mi → 15.6mi round trip, 21m → 34m with return</div>
+      </div>
+
+      <div class="footer">Escalade floor: $1.75/mi • $35/hr <span class="dot"></span> Deadhead: 35mph est <span class="dot"></span> v4 Travis</div>
+    </section>
+
+    <!-- ACTIVE VIEW -->
+    <section id="activeView">
+      <div class="totals-grid">
+        <div class="total-card">
+          <div class="total-label">Today STACKs</div>
+          <div id="totalStacks" class="total-value">0</div>
+          <div class="total-hint">accepted</div>
+        </div>
+        <div class="total-card">
+          <div class="total-label">$ earned • STACKs</div>
+          <div id="totalEarned" class="total-value">$0.00</div>
+          <div class="total-hint">today</div>
+        </div>
+        <div class="total-card">
+          <div class="total-label">Avg $/mi</div>
+          <div id="totalAvg" class="total-value">$0.00</div>
+          <div class="total-hint">STACKs today</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="clearAllBtn" class="small-btn">Clear All</button>
+        <button id="exportBtn" class="small-btn">Export CSV</button>
+      </div>
+
+      <div id="historyList" class="history-list"></div>
+      <div id="emptyState" class="empty" style="display:none">No active offers yet — analyze one from Home. Your history stays on-device.</div>
+    </section>
+  </main>
+</div>
+
+<script>
+const BASE_MILE = 1.75;
+const BASE_HOUR = 35;
+const RETURN_MPH = 35;
+const LS_KEY = 'stackr_history_v4';
+
+const els = {
+  tabHome: document.getElementById('tabHome'),
+  tabActive: document.getElementById('tabActive'),
+  homeView: document.getElementById('homeView'),
+  activeView: document.getElementById('activeView'),
+  fileInput: document.getElementById('fileInput'),
+  uploadBtn: document.getElementById('uploadBtn'),
+  previewImg: document.getElementById('previewImg'),
+  ocrStatus: document.getElementById('ocrStatus'),
+  deadheadToggle: document.getElementById('deadheadToggle'),
+  deadheadBadge: document.getElementById('deadheadBadge'),
+  clearBtn: document.getElementById('clearBtn'),
+  payInput: document.getElementById('payInput'),
+  milesInput: document.getElementById('milesInput'),
+  minsInput: document.getElementById('minsInput'),
+  analyzeBtn: document.getElementById('analyzeBtn'),
+  resultsCard: document.getElementById('resultsCard'),
+  verdictText: document.getElementById('verdictText'),
+  verdictSub: document.getElementById('verdictSub'),
+  verdictIcon: document.getElementById('verdictIcon'),
+  perMileVal: document.getElementById('perMileVal'),
+  perHourVal: document.getElementById('perHourVal'),
+  perMileLabel: document.getElementById('perMileLabel'),
+  perHourLabel: document.getElementById('perHourLabel'),
+  progressFill: document.getElementById('progressFill'),
+  detailsLine: document.getElementById('detailsLine'),
+  historyList: document.getElementById('historyList'),
+  emptyState: document.getElementById('emptyState'),
+  clearAllBtn: document.getElementById('clearAllBtn'),
+  exportBtn: document.getElementById('exportBtn'),
+  totalStacks: document.getElementById('totalStacks'),
+  totalEarned: document.getElementById('totalEarned'),
+  totalAvg: document.getElementById('totalAvg'),
+};
+
+let historyData = [];
+
+function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+
+function loadHistory(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    historyData = raw ? JSON.parse(raw) : [];
+    if(!Array.isArray(historyData)) historyData=[];
+  }catch(e){ historyData=[]; }
+}
+function saveHistory(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(historyData.slice(0,50))); }catch(e){}
+}
+function updateTabCount(){
+  els.tabActive.textContent = `ACTIVE • ${historyData.length}`;
+}
+function formatMoney(n){ return `$${Number(n).toFixed(2)}`; }
+function formatDate(ts){
+  const d = new Date(ts);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const yest = new Date(); yest.setDate(now.getDate()-1);
+  const isYest = d.toDateString() === yest.toDateString();
+  const time = d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  if(isToday) return `Today ${time}`;
+  if(isYest) return `Yesterday ${time}`;
+  return d.toLocaleDateString([], {month:'short', day:'numeric'}) + ' ' + time;
+}
+
+function calculate(){
+  const pay = parseFloat(els.payInput.value);
+  const miles = parseFloat(els.milesInput.value);
+  const mins = parseFloat(els.minsInput.value);
+  if(isNaN(pay) || isNaN(miles) || isNaN(mins) || pay<=0 || miles<=0 || mins<=0) return null;
+  const deadhead = els.deadheadToggle.checked;
+  const effectiveMiles = deadhead ? miles*2 : miles;
+  const returnMins = (miles/RETURN_MPH)*60;
+  const effectiveMinutes = deadhead ? mins + returnMins : mins;
+  const perMile = pay / effectiveMiles;
+  const perHour = pay / (effectiveMinutes/60);
+  const meetsMile = perMile >= BASE_MILE;
+  const meetsHour = perHour >= BASE_HOUR;
+  const verdict = (meetsMile && meetsHour) ? 'STACK' : 'SKIP';
+  return {pay,miles,mins,deadhead,effectiveMiles,effectiveMinutes,perMile,perHour,verdict,returnMins};
+}
+
+function renderResults(r){
+  if(!r){ els.resultsCard.classList.remove('show'); return; }
+  els.resultsCard.classList.add('show');
+  els.verdictText.textContent = r.verdict;
+  els.verdictText.className = `verdict ${r.verdict}`;
+  els.verdictSub.textContent = r.verdict==='STACK' ? `Beats $${BASE_MILE.toFixed(2)}/mi & $${BASE_HOUR}/hr floor` : `Below $${BASE_MILE.toFixed(2)}/mi or $${BASE_HOUR}/hr floor`;
+  els.verdictIcon.textContent = r.verdict==='STACK' ? '✅' : '⛔';
+  els.perMileVal.textContent = formatMoney(r.perMile) + '/mi';
+  els.perHourVal.textContent = formatMoney(r.perHour) + '/hr';
+  els.perMileLabel.textContent = r.deadhead ? '$/mi • effective' : '$/mi • one-way';
+  els.perHourLabel.textContent = r.deadhead ? '$/hr • effective' : '$/hr • one-way';
+  els.perMileVal.style.color = r.perMile >= BASE_MILE ? 'var(--green)' : 'var(--red)';
+  els.perHourVal.style.color = r.perHour >= BASE_HOUR ? 'var(--green)' : 'var(--red)';
+
+  const pctMile = r.perMile / BASE_MILE;
+  const pctHour = r.perHour / BASE_HOUR;
+  const pct = Math.max(0, Math.min(1, Math.min(pctMile, pctHour))) * 100;
+  els.progressFill.style.width = `${r.verdict==='STACK' ? 100 : Math.min(100, Math.max(8,pct))}%`;
+  els.progressFill.className = `progress-fill ${r.verdict}`;
+
+  if(r.deadhead){
+    els.detailsLine.textContent = `${r.miles}mi → ${r.effectiveMiles.toFixed(1)}mi round trip, ${r.mins}m → ${Math.round(r.effectiveMinutes)}m with return • Return ${r.returnMins.toFixed(1)}m @ ${RETURN_MPH}mph • ${formatMoney(r.perMile)}/mi & ${formatMoney(r.perHour)}/hr effective`;
+  }else{
+    els.detailsLine.textContent = `${r.miles}mi • ${r.mins}m • evaluated one-way • ${formatMoney(r.perMile)}/mi & ${formatMoney(r.perHour)}/hr • Floor $${BASE_MILE.toFixed(2)}/mi • $${BASE_HOUR}/hr`;
+  }
+}
+
+function pushHistory(r){
+  const item = {
+    id: Date.now(),
+    pay: r.pay,
+    miles: r.miles,
+    minutes: r.mins,
+    perMile: r.perMile,
+    perHour: r.perHour,
+    verdict: r.verdict,
+    deadhead: r.deadhead,
+    effectiveMiles: r.effectiveMiles,
+    effectiveMinutes: r.effectiveMinutes,
+    timestamp: Date.now()
+  };
+  historyData.unshift(item);
+  if(historyData.length>50) historyData = historyData.slice(0,50);
+  saveHistory();
+  updateTabCount();
+  renderHistory();
+  renderTotals();
+}
+
+function analyze(fromAuto=false){
+  const r = calculate();
+  if(!r){
+    if(!fromAuto) {
+      els.ocrStatus.innerHTML = `<span style="color:var(--red)">Enter valid Pay, Miles, Minutes to analyze.</span>`;
+      buzz(20);
+    }
+    return;
+  }
+  renderResults(r);
+  pushHistory(r);
+  buzz(r.verdict==='STACK' ? [30,30,60] : [20]);
+  els.resultsCard.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function renderHistory(){
+  els.historyList.innerHTML = '';
+  if(historyData.length===0){
+    els.emptyState.style.display='block';
+    return;
+  }
+  els.emptyState.style.display='none';
+  historyData.forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    card.innerHTML = `
+      <div class="bar ${item.verdict}"></div>
+      <div class="h-content">
+        <div class="h-top">
+          <div class="h-main">${formatMoney(item.pay)} • ${item.miles}mi • ${item.minutes}m ${item.deadhead ? '<span class="deadhead-icon">🔁</span>' : ''}</div>
+          <div class="h-verdict ${item.verdict}">${item.verdict}</div>
+        </div>
+        <div class="h-sub">
+          <span class="pill">${formatMoney(item.perMile)}/mi</span>
+          <span class="pill">${formatMoney(item.perHour)}/hr</span>
+          ${item.deadhead ? `<span class="pill">↩ ${item.effectiveMiles.toFixed(1)}mi RT</span>` : ''}
+        </div>
+        <div class="h-date">${formatDate(item.timestamp)}</div>
+      </div>
+    `;
+    card.addEventListener('click', ()=>{
+      els.payInput.value = item.pay;
+      els.milesInput.value = item.miles;
+      els.minsInput.value = item.minutes;
+      els.deadheadToggle.checked = !!item.deadhead;
+      updateDeadheadUI();
+      switchView('home');
+      const r = calculate();
+      if(r) renderResults(r);
+      window.scrollTo({top:0, behavior:'smooth'});
+      buzz(15);
+    });
+    els.historyList.appendChild(card);
+  });
+}
+
+function renderTotals(){
+  const now = new Date();
+  const todayItems = historyData.filter(h=>{
+    const d = new Date(h.timestamp);
+    return d.toDateString() === now.toDateString();
+  });
+  const stacks = todayItems.filter(h=>h.verdict==='STACK');
+  const earned = stacks.reduce((s,h)=>s+h.pay,0);
+  const avg = stacks.length ? (stacks.reduce((s,h)=>s+h.perMile,0)/stacks.length) : 0;
+  els.totalStacks.textContent = String(stacks.length);
+  els.totalEarned.textContent = formatMoney(earned);
+  els.totalAvg.textContent = avg ? formatMoney(avg)+'/mi' : '$0.00';
+}
+
+function switchView(view){
+  if(view==='home'){
+    els.homeView.style.display='block';
+    els.activeView.style.display='none';
+    els.tabHome.classList.add('active');
+    els.tabActive.classList.remove('active');
+  }else{
+    els.homeView.style.display='none';
+    els.activeView.style.display='block';
+    els.tabActive.classList.add('active');
+    els.tabHome.classList.remove('active');
+    renderHistory();
+    renderTotals();
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateDeadheadUI(){
+  els.deadheadBadge.style.display = els.deadheadToggle.checked ? 'inline-flex' : 'none';
+}
+
+function clearForm(){
+  els.payInput.value='';
+  els.milesInput.value='';
+  els.minsInput.value='';
+  els.fileInput.value='';
+  els.previewImg.src='';
+  els.previewImg.style.display='none';
+  els.ocrStatus.textContent='No screenshot yet. We’ll parse $ • mi • min automatically.';
+  els.resultsCard.classList.remove('show');
+  els.deadheadToggle.checked=false;
+  updateDeadheadUI();
+  buzz(12);
+}
+
+function clearAllHistory(){
+  if(!confirm('Clear all history? This cannot be undone.')) return;
+  historyData=[];
+  saveHistory();
+  updateTabCount();
+  renderHistory();
+  renderTotals();
+  buzz([20,40,20]);
+}
+
+function exportCSV(){
+  if(historyData.length===0){ alert('No history to export'); return; }
+  const header = ['id','pay','miles','minutes','effectiveMiles','effectiveMinutes','perMile','perHour','verdict','deadhead','timestamp','date'];
+  const rows = historyData.map(h=>{
+    const date = new Date(h.timestamp).toISOString();
+    return [h.id,h.pay,h.miles,h.minutes,h.effectiveMiles.toFixed(2),h.effectiveMinutes.toFixed(1),h.perMile.toFixed(2),h.perHour.toFixed(2),h.verdict,h.deadhead?1:0,h.timestamp,date].join(',');
+  });
+  const csv = [header.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url;
+  a.download=`stackr_v4_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+// OCR
+async function handleFile(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const url = URL.createObjectURL(file);
+  els.previewImg.src=url;
+  els.previewImg.style.display='block';
+  els.ocrStatus.textContent='Reading... 0%';
+  try{
+    const result = await Tesseract.recognize(file, 'eng', {
+      logger: m=>{
+        if(m.status==='recognizing text' && m.progress){
+          els.ocrStatus.textContent=`Reading... ${Math.round(m.progress*100)}%`;
+        }
+      }
+    });
+    const text = result.data.text || '';
+    console.log('OCR TEXT:', text);
+    const parsed = parseAndFill(text);
+    if(parsed.found){
+      els.ocrStatus.innerHTML = `Found <b>${parsed.summary}</b> — auto-analyzed.`;
+      buzz([20,30,20]);
+    }else{
+      els.ocrStatus.textContent='Couldn’t auto-read — enter manually.';
+    }
+  }catch(err){
+    console.error(err);
+    els.ocrStatus.textContent='OCR failed — enter manually.';
+  }
+}
+
+function parseAndFill(text){
+  const clean = text.replace(/\n/g,' ').replace(/\s+/g,' ').toLowerCase();
+  let pay = null, miles = null, mins = null;
+  let summaryParts = [];
+
+  // Pay: look for $xx.xx
+  let mPay = clean.match(/\$\s*(\d+(?:\.\d{1,2})?)/);
+  if(mPay){
+    pay = parseFloat(mPay[1]);
+  }else{
+    // fallback: largest number with decimal that looks like pay (10-100)
+    const pays = [...clean.matchAll(/(\d+\.\d{2})/g)].map(x=>parseFloat(x[1])).filter(v=>v>=3 && v<=200);
+    if(pays.length) pay = pays[0];
+  }
+
+  // Miles: xx.x mi
+  let mMiles = text.match(/(\d+(?:\.\d+)?)\s*(?:mi|miles?)\b/i);
+  if(mMiles) miles = parseFloat(mMiles[1]);
+
+  // Minutes: handle h+m
+  let totalMins = null;
+  let hm = text.match(/(\d+)\s*h\D*(\d+)\s*m/i);
+  if(hm){
+    totalMins = parseInt(hm[1])*60 + parseInt(hm[2]);
+  }else{
+    let hMatch = text.match(/(\d+)\s*(?:hr|hrs|hour|hours|h)\b/i);
+    let minMatch = text.match(/(\d+)\s*(?:min|mins|minute|minutes)\b/i);
+    if(hMatch && minMatch){
+      totalMins = parseInt(hMatch[1])*60 + parseInt(minMatch[1]);
+    }else if(hMatch){
+      // if only hours, use hours
+      let hv = parseInt(hMatch[1]);
+      if(hv>0 && hv<8) totalMins = hv*60;
+    }else if(minMatch){
+      totalMins = parseInt(minMatch[1]);
+    }else{
+      // fallback short m not mi
+      let mShort = text.match(/(\b\d+)\s*m\b(?!\s*i)/i);
+      if(mShort){
+        let vm = parseInt(mShort[1]);
+        if(vm>=3 && vm<=300) totalMins = vm;
+      }
+    }
+  }
+  mins = totalMins;
+
+  if(pay!==null && !isNaN(pay)) { els.payInput.value = pay; summaryParts.push(formatMoney(pay)); }
+  if(miles!==null && !isNaN(miles)) { els.milesInput.value = miles; summaryParts.push(`${miles}mi`); }
+  if(mins!==null && !isNaN(mins)) { els.minsInput.value = mins; summaryParts.push(`${mins}m`); }
+
+  const foundCount = summaryParts.length;
+  const summary = summaryParts.join(' • ') || '—';
+  if(foundCount===3){
+    setTimeout(()=> analyze(true), 250);
+    return {found:true, summary};
+  }else if(foundCount>0){
+    // partial: still analyze if pay exists? require all 3 for auto analyze
+    return {found: foundCount>0, summary};
+  }
+  return {found:false, summary};
+}
+
+// Events
+els.uploadBtn.addEventListener('click', ()=> els.fileInput.click());
+els.fileInput.addEventListener('change', handleFile);
+els.deadheadToggle.addEventListener('change', ()=>{
+  updateDeadheadUI();
+  const r = calculate();
+  if(r && els.resultsCard.classList.contains('show')) renderResults(r);
+  buzz(10);
+});
+els.clearBtn.addEventListener('click', clearForm);
+els.analyzeBtn.addEventListener('click', ()=> analyze(false));
+els.tabHome.addEventListener('click', ()=> switchView('home'));
+els.tabActive.addEventListener('click', ()=> switchView('active'));
+els.clearAllBtn.addEventListener('click', clearAllHistory);
+els.exportBtn.addEventListener('click', exportCSV);
+document.querySelectorAll('.preset-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    els.payInput.value = btn.dataset.pay;
+    els.milesInput.value = btn.dataset.miles;
+    els.minsInput.value = btn.dataset.mins;
+    buzz(10);
+    analyze(false);
+  });
+});
+['payInput','milesInput','minsInput'].forEach(id=>{
+  els[id].addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){ analyze(false); }
+  });
+});
+
+// init
+loadHistory();
+updateTabCount();
+updateDeadheadUI();
+renderHistory();
+renderTotals();
+switchView('home');
+</script>
+<script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
+</body>
+</html>
